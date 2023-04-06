@@ -53,3 +53,29 @@ func TestEventMarshal(t *testing.T) {
 		require.Equal(t, expectedEvent, parsedEvt)
 	}
 }
+
+func BenchmarkEvent_MarshalFastJSON(b *testing.B) {
+	ts := time.Now().UTC()
+	fields, err := helpers.NewStruct(map[string]interface{}{
+		"testval": "test",
+		"data":    3,
+		"map": map[string]interface{}{
+			"nested": true,
+		},
+	})
+	require.NoError(b, err)
+	evt := &Event{
+		Timestamp: timestamppb.New(ts),
+		Fields:    fields,
+	}
+	jsonWriter := &fastjson.Writer{}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		e := evt.MarshalFastJSON(jsonWriter)
+		require.NoError(b, e)
+		require.NotNil(b, jsonWriter.Bytes())
+		jsonWriter.Reset()
+	}
+}
