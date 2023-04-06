@@ -6,7 +6,6 @@ package elasticsearch
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"go.elastic.co/fastjson"
@@ -21,8 +20,6 @@ type Event struct {
 	Timestamp *timestamppb.Timestamp
 	Fields    *messages.Struct
 }
-
-var stringBuilder = strings.Builder{}
 
 // MarshalFastJSON implements the JSON interface for the main event type
 func (evt *Event) MarshalFastJSON(w *fastjson.Writer) error {
@@ -42,11 +39,9 @@ func (evt *Event) MarshalFastJSON(w *fastjson.Writer) error {
 				beginning = false
 			}
 
-			stringBuilder.Reset()
-			stringBuilder.WriteString("\"")
-			stringBuilder.WriteString(key)
-			stringBuilder.WriteString("\":")
-			w.RawString(stringBuilder.String())
+			w.RawString("\"")
+			w.RawString(key)
+			w.RawString("\":")
 			err := val.MarshalFastJSON(w)
 			if err != nil {
 				return fmt.Errorf("error marshaling value in map: %w", err)
